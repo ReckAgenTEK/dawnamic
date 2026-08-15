@@ -1,0 +1,4 @@
+[submodule "modules/dawn"]
+	path = modules/dawn
+	url = git@github.com-mannsion:ReckAgenTEK/dawn.git
+	branch = main
