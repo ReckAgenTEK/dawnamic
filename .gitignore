@@ -38,6 +38,7 @@ $RECYCLE.BIN/
 logs/
 tmp/
 temp/
+/scratch/
 .cache/
 .sass-cache/
 .eslintcache
@@ -168,31 +169,99 @@ site/
 hs_err_pid*
 replay_pid*
 
-# JavaScript, TypeScript, and web tooling
+# JavaScript, TypeScript, Bun, Deno, and package managers
 node_modules/
 bower_components/
+jspm_packages/
+web_modules/
 .npm/
 .pnpm-store/
+.bun/
+.bun-cache/
+.bun-build/
+.deno/
+.deno-cache/
+deno_dir/
 .yarn/cache/
 .yarn/unplugged/
 .yarn/build-state.yml
 .yarn/install-state.gz
+.yarn-integrity
 .pnp.*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+bun-debug.log*
 lerna-debug.log*
+.node_repl_history
+.node-gyp/
+*.tgz
+
+# React and frontend frameworks
 .next/
 .nuxt/
+.output/
 .svelte-kit/
 .angular/
+.astro/
+.react-router/
+.remix/
+.vinxi/
+.redwood/
+.expo/
+.expo-shared/
+.metro-cache/
+.metro-health-check*
+web-build/
+.docusaurus/
+storybook-static/
+
+# JavaScript bundlers, compilers, and monorepos
 .parcel-cache/
 .turbo/
 .vite/
-.docusaurus/
-storybook-static/
+.webpack/
+.swc/
+.esbuild/
+.rollup.cache/
+.rspack-cache/
+.nx/
+.lage/
+.moon/cache/
+.moon/docker/
+.rush/temp/
+common/temp/
+bazel-*
 *.tsbuildinfo
+
+# JavaScript and browser testing
+.jest-cache/
+.vitest/
+test-results/
+playwright-report/
+blob-report/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+coverage-final.json
+*.lcov
+
+# Web deployment and serverless tooling
+.vercel/
+.netlify/
+.firebase/
+.wrangler/
+.dev.vars
+.serverless/
+.sst/
+cdk.out/
+.amplify-hosting/
+
+# Mobile and desktop JavaScript tooling
+.electron/
+*.jks
+*.keystore
 
 # Go
 *.test
