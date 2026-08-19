@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "runner_labels": [
+      "self-hosted",
+      "X64",
+      "Linux",
+      "arch-build"
+    ],
+    "runner_name": "arch-build-01",
+    "runner_user": "builder",
+    "build_type": "Release",
+    "artifact_retention_days": 14
+  },
+  "targets": [
+    {
+      "id": "archlinux-x64",
+      "display_name": "Arch Linux x64",
+      "dockerfile": "ci/linux-x64/docker/archlinux.Dockerfile",
+      "base_image": "archlinux:base-devel@sha256:aecf5b39bd3139a951090dfb3d940f9317e4c5fca038c65fb49ac03910f7133e",
+      "package_snapshot": "2026/08/18",
+      "security_snapshot": ""
+    },
+    {
+      "id": "steamos-x64",
+      "display_name": "SteamOS / Steam Linux Runtime 4 x64",
+      "dockerfile": "ci/linux-x64/docker/steamrt4.Dockerfile",
+      "base_image": "registry.gitlab.steamos.cloud/steamrt/steamrt4/sdk:4.0.20260805.254769@sha256:2ff6220464894964266c7dbda1b91ca24e433a58ad3edff26571a2a9e5163e00",
+      "package_snapshot": "20260817T203319Z",
+      "security_snapshot": "20260817T234556Z"
+    },
+    {
+      "id": "ubuntu-26.04-x64",
+      "display_name": "Ubuntu 26.04 x64",
+      "dockerfile": "ci/linux-x64/docker/apt.Dockerfile",
+      "base_image": "ubuntu:26.04@sha256:889d056d5c6c0bfb55789ff3710681d68e50713cb562d2196dc07110599c7a6f",
+      "package_snapshot": "20260818T000000Z",
+      "security_snapshot": "20260818T000000Z"
+    },
+    {
+      "id": "debian-13-x64",
+      "display_name": "Debian 13 x64",
+      "dockerfile": "ci/linux-x64/docker/apt.Dockerfile",
+      "base_image": "debian:13@sha256:d8f17b92dc7ff10f9c1fdecab0ad21103d1d24aed823c3a0359e4f50adfab3eb",
+      "package_snapshot": "20260817T203319Z",
+      "security_snapshot": "20260817T234556Z"
+    }
+  ]
+}

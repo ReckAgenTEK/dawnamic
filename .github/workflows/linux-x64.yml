@@ -1,0 +1,19 @@
+name: Build Dawn SDKs (Linux x64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "all, comma-separated target IDs, or a JSON array of target IDs"
+        required: true
+        default: all
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  linux-x64:
+    uses: ./.github/workflows/_linux-x64-sdk.yml
+    with:
+      targets: ${{ inputs.targets }}

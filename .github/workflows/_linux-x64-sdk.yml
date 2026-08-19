@@ -1,0 +1,156 @@
+name: Reusable Dawn SDK build (Linux x64)
+
+on:
+  workflow_call:
+    inputs:
+      targets:
+        description: "all, comma-separated target IDs, or a JSON array of target IDs"
+        required: false
+        default: all
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-targets:
+    name: Resolve target configuration
+    runs-on: [self-hosted, X64, Linux, arch-build]
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.resolve.outputs.matrix }}
+
+    steps:
+      - name: Check out pipeline configuration
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Verify Arch Build Zero One runner
+        shell: bash
+        run: ci/linux-x64/check-runner.sh arch-build-01 builder
+
+      - name: Resolve build matrix
+        id: resolve
+        env:
+          TARGET_SELECTION: ${{ inputs.targets }}
+        shell: bash
+        run: |
+          matrix="$(python3 ci/linux-x64/resolve-targets.py "$TARGET_SELECTION")"
+          printf 'matrix=%s\n' "$matrix" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: ${{ matrix.display_name }}
+    needs: resolve-targets
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve-targets.outputs.matrix) }}
+
+    runs-on: ${{ fromJSON(matrix.runner_labels_json) }}
+    timeout-minutes: 240
+
+    steps:
+      - name: Check out pinned Dawn source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Verify selected runner and Docker
+        shell: bash
+        run: >-
+          ci/linux-x64/check-runner.sh
+          "${{ matrix.runner_name }}"
+          "${{ matrix.runner_user }}"
+
+      - name: Build and verify redistributable SDK in target container
+        env:
+          DAWN_TARGET_ID: ${{ matrix.id }}
+          DAWN_DOCKERFILE: ${{ matrix.dockerfile }}
+          DAWN_BASE_IMAGE: ${{ matrix.base_image }}
+          DAWN_BUILD_TYPE: ${{ matrix.build_type }}
+          DAWN_PACKAGE_SNAPSHOT: ${{ matrix.package_snapshot }}
+          DAWN_SECURITY_SNAPSHOT: ${{ matrix.security_snapshot }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          log="out/workflow-logs/${DAWN_TARGET_ID}.log"
+          mkdir -p "$(dirname "$log")"
+          ci/linux-x64/run-container.sh \
+            "$DAWN_TARGET_ID" \
+            "$DAWN_DOCKERFILE" \
+            "$DAWN_BASE_IMAGE" \
+            "$DAWN_BUILD_TYPE" \
+            "$DAWN_PACKAGE_SNAPSHOT" \
+            "$DAWN_SECURITY_SNAPSHOT" \
+            2>&1 | tee "$log"
+
+      - name: Record successful SDK verification
+        if: ${{ success() }}
+        shell: bash
+        env:
+          DAWN_TARGET_ID: ${{ matrix.id }}
+        run: |
+          receipt="out/${DAWN_TARGET_ID}/verification/result.txt"
+          test -s "$receipt"
+          published_receipt="out/workflow-receipts/dawn-${DAWN_TARGET_ID}-verification.txt"
+          mkdir -p "$(dirname "$published_receipt")"
+          cp "$receipt" "$published_receipt"
+          {
+            echo "### ${{ matrix.display_name }}"
+            echo
+            echo '```text'
+            cat "$receipt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record failed SDK build
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          {
+            echo "### ${{ matrix.display_name }}"
+            echo
+            echo "Build or verification failed. See job log and uploaded execution log."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload redistributable SDK archive
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dawn-${{ matrix.id }}-sdk
+          path: out/${{ matrix.id }}/artifacts/dawn-${{ matrix.id }}.tar.zst
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ matrix.artifact_retention_days }}
+
+      - name: Upload SDK checksum
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dawn-${{ matrix.id }}-sha256
+          path: out/${{ matrix.id }}/artifacts/dawn-${{ matrix.id }}.tar.zst.sha256
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ matrix.artifact_retention_days }}
+
+      - name: Upload SDK verification receipt
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dawn-${{ matrix.id }}-verification
+          path: out/workflow-receipts/dawn-${{ matrix.id }}-verification.txt
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ matrix.artifact_retention_days }}
+
+      - name: Upload execution log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: dawn-${{ matrix.id }}-build-log
+          path: out/workflow-logs/${{ matrix.id }}.log
+          archive: false
+          if-no-files-found: warn
+          retention-days: ${{ matrix.artifact_retention_days }}

@@ -1,0 +1,22 @@
+name: Build Dawn SDK (Arch Linux x64)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/archlinux-x64.yml
+      - .github/workflows/_linux-x64-sdk.yml
+      - ci/linux-x64/**
+      - .gitmodules
+      - modules/dawn
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archlinux-x64:
+    uses: ./.github/workflows/_linux-x64-sdk.yml
+    with:
+      targets: archlinux-x64
